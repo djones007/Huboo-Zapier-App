@@ -4,7 +4,6 @@ const perform = async (z, bundle) => {
     'address':{
       name:bundle.inputData.name,
       line_one:bundle.inputData.lineOne,
-      line_two:bundle.inputData.lineTwo ? bundle.inputData.lineTwo : '',
       country_code:bundle.inputData.countryCode,
       postcode:bundle.inputData.postcode
     },
@@ -14,18 +13,26 @@ const perform = async (z, bundle) => {
   //Build lineitems
   bundle.inputData.lineItems.forEach((l)=> {
     payload.lines.push({
-      sku:l.sku,
+      identifier:l.sku,
       quantity:l.quantity,
       sales_value:{
-        amount:l.amount,
+        amount:parseFloat(l.amount).toFixed(2),
         currency:bundle.inputData.currency
       }
     })
   })
 
+  //City, State, Line 2 logic
+  if(bundle.inputData.lineTwo){
+    payload.address.line_two = bundle.inputData.lineTwo
+    payload.address.line_four = bundle.inputData.city
+  } else {
+    payload.address.line_two = bundle.inputData.city
+  }
+
   //Check for non required fields and populate if they exist
-  if(bundle.inputData.city){
-    payload.address.town = bundle.inputData.city;
+  if(bundle.inputData.state){
+    payload.address.town = bundle.inputData.state
   }
   if(bundle.inputData.email){
     payload.address.email_address = bundle.inputData.email;
@@ -107,6 +114,12 @@ module.exports = {
             key: "city",
             type: "string",
             label: "City",
+            required:true
+          },
+          {
+            key: "state",
+            type: "string",
+            label: "State",
             required:false
           },
           {
@@ -146,13 +159,13 @@ module.exports = {
           },
           {
             key: "quantity",
-            type: "string",
+            type: "number",
             label: "Quantity",
             required:true
           },
           {
             key: "amount",
-            type: "string",
+            type: "number",
             label: "Amount",
             required:true
           },
@@ -173,13 +186,13 @@ module.exports = {
       {
         key: "note",
         type: "text",
-        label: "Contact Description",
+        label: "Note",
         required:false
       },
       {
         key: "channel",
         type: "text",
-        label: "Contact Description",
+        label: "Channel",
         required:false
       },
     ],

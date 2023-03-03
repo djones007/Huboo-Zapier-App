@@ -7,6 +7,20 @@ const perform = async (z, bundle) => {
     params.statuses = bundle.inputData.status
   }
 
+  const page1 = await z
+    .request(`https://api.huboo.uk/v2/orders`, {
+      method: "GET",
+      params: params,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept":"application/json"
+      },
+    })
+    .then((res) => res.json);
+
+
+  params.page = page1.meta.last_page;
+
   const response = await z
     .request(`https://api.huboo.uk/v2/orders`, {
       method: "GET",
