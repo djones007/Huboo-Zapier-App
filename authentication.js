@@ -4,6 +4,23 @@ const includeApiKey = (request, z, bundle) => {
   return request;
 };
 
+const checkForErrors = (response, z) => {
+  // In some cases the lower levels of the code can provide better error
+  // messages. If they set this flag in the request, then we should fall back
+  // to them to handle the errors.
+  const responseHttpStatusCode = response.status;
+  // Don't do any error message checking if we get a response in the 200 status code range
+  if (responseHttpStatusCode >= 200 && responseHttpStatusCode < 299) {
+    return response;
+  }
+
+  // If we end up here guess we don't really have any idea what happened so we'll
+  // just return the generic content.
+  throw new Error(
+    `Error code ${responseHttpStatusCode}: ${response.content}`
+  );
+};
+
 const test = async (z,bundel) => {
 const response = await z
   .request(`https://api.huboo.uk/v2/sites`, {
@@ -51,5 +68,5 @@ config: {
   connectionLabel: getConnectionLabel,
 },
 befores: [includeApiKey],
-afters: [],
+afters: [checkForErrors],
 };
