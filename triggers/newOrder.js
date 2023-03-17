@@ -32,7 +32,24 @@ const perform = async (z, bundle) => {
     })
     .then((res) => res.json);
 
-  return response.data;
+  let orders = [],
+      ignore = bundle.inputData.ignore
+
+  if(bundle.inputData.ignore){
+    orders = response.data.filter((o) => {
+      let c = false;
+      ignore.forEach((i) => {
+        if(o.client_order_id.indexOf(i) == -1){
+          c=true;
+        }
+      })
+      return c;
+   })
+  } else {
+    orders = response.data
+  }
+
+  return orders;
 };
 
 module.exports = {
@@ -64,6 +81,13 @@ module.exports = {
           error:'Error'
         }
       },
+      {
+        key:"ignore",
+        type:'string',
+        label:'Strings to ignore if they are in an OrderID',
+        required:false,
+        list:true
+      }
     ],
 
     perform: perform,
