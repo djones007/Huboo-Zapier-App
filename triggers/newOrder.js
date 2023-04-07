@@ -36,10 +36,11 @@ const perform = async (z, bundle) => {
       ignore = bundle.inputData.ignore
 
   if(bundle.inputData.ignore){
+    z.console.log('Filter: ' + JSON.stringify(bundle.inputData.ignore));
     orders = response.data.filter((o) => {
       let c = false;
       ignore.forEach((i) => {
-        if(o.client_order_id.indexOf(i) == -1){
+        if(o.client_order_id && o.client_order_id.indexOf(i) == -1){
           c=true;
         }
       })
