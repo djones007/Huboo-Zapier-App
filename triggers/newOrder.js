@@ -1,3 +1,17 @@
+const callApi = async (z,params) => {
+  const response = await z
+  .request(`https://api.huboo.uk/v2/orders`, {
+      method: "GET",
+      params:params,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept":"application/json"
+      },
+  })
+  .then((res) => res.json);
+  return response;
+}
+
 const perform = async (z, bundle) => {
   let params = {
     per_page:250
@@ -18,26 +32,27 @@ const perform = async (z, bundle) => {
     })
     .then((res) => res.json);
 
+  params.page = page1.meta.last_page - 1;
 
-  params.page = page1.meta.last_page;
-
-  const response = await z
-    .request(`https://api.huboo.uk/v2/orders`, {
-      method: "GET",
-      params: params,
-      headers: {
-        "Content-Type": "application/json",
-        "Accept":"application/json"
-      },
-    })
-    .then((res) => res.json);
+  z.console.log('Params: ' + JSON.stringify(params));
 
   let orders = [],
-      ignore = bundle.inputData.ignore
+      ignore = bundle.inputData.ignore;
+
+  do {
+    const response = await callApi(z,params);
+    if (response.data.length > 0) {
+       orders.push(...response.data);
+       //z.console.log('Orders Length Paginated Call: ' + orders.length);
+    }
+    let nextPage = params.page + 1;
+
+    params.page = nextPage;
+  } while (params.page <= page1.meta.last_page);
 
   if(bundle.inputData.ignore){
-    z.console.log('Filter: ' + JSON.stringify(bundle.inputData.ignore));
-    orders = response.data.filter((o) => {
+    //z.console.log('Filter: ' + JSON.stringify(bundle.inputData.ignore));
+    orders = orders.filter((o) => {
       let c = false;
       ignore.forEach((i) => {
         if(o.client_order_id && o.client_order_id.indexOf(i) == -1){
@@ -46,9 +61,9 @@ const perform = async (z, bundle) => {
       })
       return c;
    })
-  } else {
-    orders = response.data
   }
+
+  z.console.log('Orders Length: ' + orders.length);
 
   return orders;
 };
